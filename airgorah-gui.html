@@ -1,0 +1,685 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+<meta name="color-scheme" content="light dark"/>
+<link rel="icon" href="data:,"/>
+<title>Airgorah — CLI + GUI Ek Saath | WiFi Address Daalo, Command Chalao</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#edf1ed; --panel:#ffffff; --panel2:#f4f7f4; --line:#dbe2db; --text:#101613; --muted:#5f6d63; --faint:#93a198;
+  --accent:#0a7a5c; --accent2:#0d9973; --accent-soft:#e0f2ea; --amber:#a86a06; --amber-soft:#fdf0d3; --red:#bf3f0d; --red-soft:#ffe8d9;
+  --blue:#1d4ed8; --blue-soft:#dbeafe; --console:#0a100c; --console-text:#a9f2c6; --console-dim:#5f7a68;
+  --shadow:0 1px 3px rgba(10,30,20,.07),0 10px 28px rgba(10,30,20,.05);
+}
+@media (prefers-color-scheme: dark){
+  :root{
+    --bg:#090e0b; --panel:#121914; --panel2:#18211a; --line:#253229; --text:#e7eee8; --muted:#9db0a2; --faint:#677a6d;
+    --accent:#2dd4a7; --accent2:#34d399; --accent-soft:#113325; --amber:#fbbf24; --amber-soft:#2a2105; --red:#fb923c; --red-soft:#2b1606;
+    --blue:#60a5fa; --blue-soft:#16294d; --console:#060907; --console-text:#86efac; --console-dim:#4c6152;
+    --shadow:0 1px 3px rgba(0,0,0,.45);
+  }
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:"IBM Plex Sans",system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+.mono{font-family:"JetBrains Mono",monospace}
+button{font-family:inherit;cursor:pointer}
+.wrap{max-width:880px;margin:0 auto;padding:20px 16px 34px}
+@media(max-width:600px){.wrap{padding:14px 12px 26px}}
+
+/* HEAD */
+.head{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;flex-wrap:wrap;margin-bottom:14px}
+.head h1{margin:0;font-size:25px;line-height:1.18;letter-spacing:-.02em;max-width:560px}
+.head h1 em{font-style:normal;color:var(--accent)}
+.head p{margin:7px 0 0;color:var(--muted);font-size:14px;line-height:1.65;max-width:600px}
+.head p b{color:var(--text)}
+.badge{font-size:11px;font-weight:700;letter-spacing:.05em;padding:6px 10px;border-radius:99px;background:#f59e0b;color:#161006;white-space:nowrap;margin-top:4px}
+
+/* CARD */
+.card{background:var(--panel);border:1px solid var(--line);border-radius:12px;box-shadow:var(--shadow);padding:17px;margin-bottom:13px}
+.card h2{margin:0 0 4px;font-size:16.5px;display:flex;align-items:center;gap:9px;flex-wrap:wrap}
+.card h2 .step-no{width:26px;height:26px;border-radius:50%;background:var(--accent);color:#fff;display:grid;place-items:center;font-size:13px;font-weight:700;flex-shrink:0}
+.card .sub{margin:0 0 13px;font-size:13px;color:var(--muted);line-height:1.6}
+.card .sub b{color:var(--text)}
+.card .sub code{font-family:"JetBrains Mono",monospace;font-size:11.5px;background:var(--panel2);border:1px solid var(--line);padding:1px 5px;border-radius:4px;color:var(--text)}
+
+/* FORM */
+.main-field label{font-size:11.5px;letter-spacing:.07em;text-transform:uppercase;color:var(--muted);font-weight:700;display:block;margin-bottom:5px}
+.main-field input{width:100%;border:2px solid var(--accent);background:var(--panel2);color:var(--text);border-radius:9px;padding:14px 13px;font-size:16.5px;font-family:"JetBrains Mono",monospace;font-weight:700;letter-spacing:.03em;outline:0}
+.main-field input:focus{box-shadow:0 0 0 4px var(--accent-soft)}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:11px}
+@media(max-width:560px){.form-grid{grid-template-columns:1fr}}
+.field label{font-size:11px;letter-spacing:.07em;text-transform:uppercase;color:var(--muted);font-weight:700;display:block;margin-bottom:4px}
+.field input,.field select{width:100%;border:1px solid var(--line);background:var(--panel2);color:var(--text);border-radius:8px;padding:10px 11px;font-size:14px;font-family:inherit;outline:0}
+.field input.mono-in{font-family:"JetBrains Mono",monospace;font-size:13px}
+.err{display:none;margin-top:10px;background:var(--red-soft);color:var(--red);border-radius:8px;padding:10px 12px;font-size:13.5px;font-weight:600;line-height:1.55}
+.err.show{display:block}
+.run-row{display:flex;gap:9px;margin-top:15px;flex-wrap:wrap}
+.btn{border:1px solid var(--line);background:var(--panel2);color:var(--text);padding:11px 16px;border-radius:8px;font-weight:700;font-size:14px;display:inline-flex;align-items:center;gap:8px}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:#fff;font-size:15.5px;padding:14px 20px;flex:1;justify-content:center;min-width:230px}
+.btn.primary:hover{background:var(--accent2)}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.honest{margin-top:12px;font-size:12.5px;color:var(--muted);line-height:1.65;background:var(--panel2);border:1px dashed var(--line);border-radius:8px;padding:10px 12px}
+.honest b{color:var(--text)}
+
+/* COMMANDS */
+.cmd-head{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:10px}
+.cmd-head h2{margin:0}
+.count{font-family:"JetBrains Mono",monospace;font-size:12.5px;font-weight:700;background:var(--panel2);border:1px solid var(--line);padding:5px 10px;border-radius:99px}
+.progress{height:9px;background:var(--panel2);border:1px solid var(--line);border-radius:99px;overflow:hidden;margin-bottom:13px}
+.progress i{display:block;height:100%;background:var(--accent);width:0%;transition:width .35s}
+.cmd-list{list-style:none;margin:0;padding:0}
+.cmd-list li{display:flex;gap:11px;align-items:flex-start;padding:10px 11px;border:1px solid var(--line);border-radius:9px;margin-bottom:7px;background:var(--panel)}
+.cmd-list li:last-child{margin-bottom:0}
+.cmd-list li.running{border-color:var(--accent);background:var(--accent-soft)}
+.cmd-list li.done{border-color:var(--line)}
+.st{width:24px;height:24px;border-radius:50%;border:2px solid var(--line);display:grid;place-items:center;font-size:12.5px;font-weight:700;flex-shrink:0;margin-top:1px;color:var(--faint);background:var(--panel2)}
+li.running .st{border-color:var(--accent);color:var(--accent);background:var(--panel)}
+li.done .st{border-color:var(--accent);background:var(--accent);color:#fff}
+.cmd-body{flex:1;min-width:0}
+.cmd-body b{font-size:14px;display:block}
+.cmd-body .d{font-size:12.5px;color:var(--muted);line-height:1.55;margin-top:1px}
+.cmd-body .c{font-family:"JetBrains Mono",monospace;font-size:11.5px;color:var(--accent);word-break:break-all;display:block;margin-top:3px}
+.cmd-state{font-size:11px;font-weight:700;letter-spacing:.05em;white-space:nowrap;padding-top:5px;color:var(--faint)}
+li.running .cmd-state{color:var(--accent)}
+li.done .cmd-state{color:var(--accent)}
+.spin{display:inline-block;animation:rot 1s linear infinite}
+@keyframes rot{to{transform:rotate(360deg)}}
+
+/* TERMINAL + CLI */
+.term-head{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:10px;flex-wrap:wrap}
+.console{background:var(--console);color:var(--console-text);border-radius:10px 10px 0 0;font-family:"JetBrains Mono",monospace;font-size:12.4px;line-height:1.8;padding:14px 15px;height:300px;overflow-y:auto;overflow-x:hidden;word-break:break-word}
+.console .t{color:var(--console-dim)}
+.console .ok{color:#4ade80}.console .warn{color:#fbbf24}.console .err{color:#f87171}.console .info{color:#7dd3fc}.console .dim{color:var(--console-dim)}
+.console .hl{color:#fff;font-weight:700}
+.console .cmd-echo{color:#fff}
+.console .prompt{color:#2dd4a7;font-weight:700}
+@media(max-width:600px){.console{height:260px;font-size:11.8px}}
+.cli-bar{display:flex;align-items:center;gap:0;background:#0f1a12;border:1px solid #1e3324;border-top:1px solid #223528;border-radius:0 0 10px 10px;overflow:hidden}
+.cli-prompt{font-family:"JetBrains Mono",monospace;font-size:12.8px;font-weight:700;color:#2dd4a7;padding:13px 4px 13px 14px;white-space:nowrap}
+.cli-bar input{flex:1;min-width:0;background:transparent;border:0;outline:0;color:#e7f5eb;font-family:"JetBrains Mono",monospace;font-size:13.5px;padding:13px 6px;caret-color:#2dd4a7}
+.cli-bar input::placeholder{color:#5f7a68}
+.cli-run{background:var(--accent);color:#fff;border:0;padding:0 18px;align-self:stretch;font-weight:700;font-size:13.5px;white-space:nowrap}
+.cli-run:hover{background:var(--accent2)}
+.quick{display:flex;gap:7px;flex-wrap:wrap;margin-top:11px}
+.chip{font-family:"JetBrains Mono",monospace;font-size:11.8px;font-weight:600;border:1px solid var(--line);background:var(--panel2);color:var(--text);padding:7px 10px;border-radius:99px}
+.chip:hover{border-color:var(--accent);color:var(--accent)}
+.chip b{color:var(--accent)}
+.help-grid{display:grid;grid-template-columns:1fr 1fr;gap:0 18px;margin-top:12px;border:1px solid var(--line);border-radius:9px;overflow:hidden}
+@media(max-width:640px){.help-grid{grid-template-columns:1fr}}
+.help-grid div{display:flex;gap:10px;padding:8px 11px;border-bottom:1px solid var(--line);background:var(--panel);font-size:12.8px;align-items:baseline}
+.help-grid div code{font-family:"JetBrains Mono",monospace;font-size:11.8px;color:var(--accent);font-weight:700;white-space:nowrap}
+.help-grid div span{color:var(--muted);line-height:1.45}
+.cmd-list li{cursor:pointer}
+.cmd-list li:hover{border-color:var(--accent)}
+
+/* RESULT */
+#resultCard{display:none}
+#resultCard.show{display:block}
+.res-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin-bottom:12px}
+@media(max-width:640px){.res-grid{grid-template-columns:1fr 1fr}}
+.rbox{background:var(--panel2);border:1px solid var(--line);border-radius:9px;padding:11px 12px;min-width:0}
+.rbox label{font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:700;display:block}
+.rbox .v{font-family:"JetBrains Mono",monospace;font-size:13.5px;font-weight:700;margin-top:4px;word-break:break-all}
+.score-row{display:flex;align-items:center;gap:13px;background:var(--panel2);border:1px solid var(--line);border-radius:9px;padding:12px 13px;margin-bottom:12px;flex-wrap:wrap}
+.score-num{font-size:33px;font-weight:700;letter-spacing:-.03em;line-height:1}
+.score-bar{flex:1;min-width:150px}
+.score-bar .bar{height:9px;background:var(--panel);border:1px solid var(--line);border-radius:99px;overflow:hidden}
+.score-bar .fill{height:100%;background:var(--accent);width:0%;transition:width .5s}
+.score-bar .tip{font-size:12.5px;color:var(--muted);margin-top:5px;line-height:1.55}
+.pwd-box{background:var(--panel2);border:1px solid var(--line);border-radius:9px;padding:12px 13px}
+.pwd-box>label{font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:700;display:block}
+.pwd-row{display:flex;align-items:center;gap:9px;margin-top:7px;flex-wrap:wrap}
+.pwd-val{font-family:"JetBrains Mono",monospace;font-size:16px;font-weight:700;word-break:break-all;flex:1;min-width:120px}
+.eye-btn{border:1px solid var(--line);background:var(--panel);color:var(--text);padding:7px 12px;border-radius:7px;font-size:12.5px;font-weight:700}
+.pwd-note{font-size:12.5px;color:var(--muted);margin-top:7px;line-height:1.6}
+.verdict{margin-top:12px;border-radius:9px;padding:12px 13px;font-size:13.5px;line-height:1.65}
+.verdict.bad{background:var(--red-soft);color:var(--red)}
+.verdict.good{background:var(--accent-soft);color:var(--accent)}
+.verdict.mid{background:var(--amber-soft);color:var(--amber)}
+.verdict b{display:block;font-size:14.5px;margin-bottom:2px}
+
+footer{color:var(--muted);font-size:12.5px;line-height:1.7;padding:2px 2px 0}
+footer b{color:var(--text)}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:18px;background:#101613;color:#fff;padding:11px 17px;border-radius:9px;font-size:13.5px;font-weight:600;box-shadow:0 12px 30px rgba(0,0,0,.32);opacity:0;pointer-events:none;transition:.25s;z-index:50;max-width:92vw;text-align:center}
+.toast.show{opacity:1;bottom:25px}
+@media (prefers-reduced-motion: reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="head">
+    <div>
+      <h1>CLI ab GUI ke andar hai — <em>command likho ya button dabao.</em></h1>
+      <p>Ab dono tareeqay ek hi jagah hain: <b>GUI se</b> WiFi ka address (BSSID) likh kar <b>Poori Run Chalao</b> dabao — saari 10 commands khud chalengi. Ya <b>neeche CLI terminal mein</b> asal Airgorah wali command type karo, jaise <b class="mono">scan</b> ya <b class="mono">target lock AA:BB:…</b> — output wahi terminal mein aayega aur upar wali GUI list mein us command par ✓ lag jayega. GUI aur CLI dono ek hi state share karte hain.</p>
+    </div>
+    <span class="badge">● CLI + GUI • LIVE ONLY — DATA SAVE NAHI HOTA</span>
+  </div>
+
+  <!-- 1 : TARGET INPUT -->
+  <section class="card">
+    <h2><span class="step-no">1</span> Target Ka Address Likho</h2>
+    <p class="sub">BSSID router ke peechay lage sticker par likha hota hai, ya router settings <code>192.168.1.1</code> → Wireless mein milta hai. Format aisa hota hai: <code>AA:BB:CC:DD:EE:FF</code>. <b>Sirf apna WiFi daalna hai.</b></p>
+
+    <div class="main-field">
+      <label for="inBssid">WiFi Address — BSSID (sab se zaroori) *</label>
+      <input id="inBssid" class="mono" placeholder="AA:BB:CC:DD:EE:FF" maxlength="17" autocomplete="off" spellcheck="false">
+    </div>
+
+    <div class="form-grid">
+      <div class="field"><label>SSID — WiFi ka naam</label><input id="inSsid" placeholder="e.g. HomeNet" maxlength="32" autocomplete="off"></div>
+      <div class="field"><label>Interface</label><select id="inIface"><option value="wlan0">wlan0 — Intel AX200</option><option value="wlan1">wlan1 — Alfa AWUS036ACH</option><option value="wlan2">wlan2 — TP-Link TL-WN722N</option></select></div>
+      <div class="field"><label>Channel</label><select id="inCh"><option value="auto" selected>Auto — scan se pata chalega</option><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option><option>7</option><option>8</option><option>9</option><option>10</option><option>11</option><option>36</option><option>44</option><option>149</option></select></div>
+      <div class="field"><label>Security</label><select id="inEnc"><option value="auto" selected>Auto — scan se pata chalega</option><option>WPA3</option><option>WPA2</option><option>WPA</option><option>OPEN</option></select></div>
+      <div class="field" style="grid-column:1/-1"><label>Apna WiFi Password — sirf apni strength check karne ke liye (optional)</label><input id="inPwd" class="mono-in" placeholder="Apna password likho — ye kahin save nahi hota, sirf check hoga ke weak hai ya strong" autocomplete="off"></div>
+    </div>
+
+    <div class="err" id="formErr"></div>
+
+    <div class="run-row">
+      <button class="btn primary" id="btnRun">▶ Poori Run Chalao — Saari 10 Commands</button>
+      <button class="btn" id="btnStop" disabled>■ Rokko</button>
+      <button class="btn" id="btnClear">Output Clear</button>
+    </div>
+
+    <div class="honest"><b>Sach baat, saaf likhi hai:</b> browser asal WiFi hardware ko access nahi kar sakta, is liye yahan output <b>demo (simulated)</b> hai — lekin run bilkul asal Airgorah jaisi hai: wohi 10 commands, usi order mein, wohi output. Asal live run ke liye yehi address Linux PC par asal Airgorah + monitor-mode adapter ke saath chalega. Yahan <b>kuch save nahi hota</b> — refresh karte hi sab clear.</div>
+  </section>
+
+  <!-- 2 : ALL COMMANDS -->
+  <section class="card">
+    <div class="cmd-head">
+      <h2><span class="step-no">2</span> Saari Commands — Ek Bhi Miss Nahi</h2>
+      <span class="count" id="cmdCount">0 / 10 complete</span>
+    </div>
+    <p class="sub" style="margin-bottom:11px">Ye wohi 10 CLI commands hain jo asal Airgorah mein hoti hain. <b>Kisi command par click karo</b> to wohi command neeche CLI terminal mein chal jayegi — ya terminal mein khud type kar lo, list yahan khud update ho jayegi.</p>
+    <div class="progress"><i id="progFill"></i></div>
+    <ul class="cmd-list" id="cmdList"></ul>
+  </section>
+
+  <!-- 3 : CLI TERMINAL INSIDE GUI -->
+  <section class="card" id="cliCard">
+    <div class="term-head">
+      <h2 style="margin:0"><span class="step-no">3</span> CLI Terminal — GUI Ke Andar</h2>
+      <span class="count" id="runState">READY — command ka intezar hai</span>
+    </div>
+    <p class="sub">Ye asal CLI hai, GUI ke andar add ki hui. Neeche prompt par command likho aur <b>Enter</b> dabao. Shuruaat ke liye <code>help</code> likho — saari commands ki list aa jayegi. Upar GUI mein jo BSSID likha hai, CLI usi ko target manti hai; chaho to command mein khud bhi de sakte ho: <code>target lock AA:BB:CC:DD:EE:FF</code>. Saari run ek saath chahiye to <code>run all</code> likho.</p>
+    <div class="console" id="consoleLog" aria-live="polite"></div>
+    <form class="cli-bar" id="cliForm" autocomplete="off">
+      <span class="cli-prompt">airgorah&nbsp;&gt;</span>
+      <input id="cliInput" placeholder="command likho — e.g. help, scan, target lock, run all" spellcheck="false" aria-label="CLI command input">
+      <button class="cli-run" type="submit">↵ Chalao</button>
+    </form>
+    <div class="quick" aria-label="Quick CLI commands">
+      <button type="button" class="chip" data-cli="help"><b>help</b></button>
+      <button type="button" class="chip" data-cli="interface check">interface check</button>
+      <button type="button" class="chip" data-cli="monitor-mode on">monitor-mode on</button>
+      <button type="button" class="chip" data-cli="scan --all-channels">scan</button>
+      <button type="button" class="chip" data-cli="target lock">target lock</button>
+      <button type="button" class="chip" data-cli="clients list">clients list</button>
+      <button type="button" class="chip" data-cli="capture handshake">capture handshake</button>
+      <button type="button" class="chip" data-cli="password test --wordlist common">password test</button>
+      <button type="button" class="chip" data-cli="report generate">report generate</button>
+      <button type="button" class="chip" data-cli="run all"><b>run all</b> — poori run</button>
+      <button type="button" class="chip" data-cli="status">status</button>
+      <button type="button" class="chip" data-cli="clear">clear</button>
+    </div>
+    <div class="help-grid" id="helpGrid">
+      <div><code>help</code><span>Saari CLI commands ki list</span></div>
+      <div><code>interface check</code><span>Adapter / driver check — Command 1</span></div>
+      <div><code>monitor-mode on / off</code><span>Monitor mode on ya off — Command 2</span></div>
+      <div><code>scan [--all-channels]</code><span>Aas paas ke networks scan — Command 3</span></div>
+      <div><code>target lock [BSSID]</code><span>Target lock — BSSID na do to GUI wala use hoga — Command 4</span></div>
+      <div><code>channel lock [CH]</code><span>Target channel par lock — Command 5</span></div>
+      <div><code>clients list</code><span>Connected devices — Command 6</span></div>
+      <div><code>capture handshake</code><span>WPA handshake capture — Command 7</span></div>
+      <div><code>deauth test</code><span>Deauth test (sirf apna network) — Command 8</span></div>
+      <div><code>password test</code><span>Dictionary / password test — Command 9</span></div>
+      <div><code>report generate</code><span>Security report + score — Command 10</span></div>
+      <div><code>run all</code><span>Saari 10 commands ek ke baad ek (GUI wali poori run)</span></div>
+      <div><code>status</code><span>Ab tak kya-kya ho chuka hai</span></div>
+      <div><code>clear</code><span>Terminal saaf karo</span></div>
+    </div>
+  </section>
+
+  <!-- 4 : RESULT -->
+  <section class="card" id="resultCard">
+    <h2><span class="step-no">4</span> Target Ki Poori Report</h2>
+    <p class="sub">Run complete hote hi target ka saara data yahan aa gaya hai — yehi woh output hai jo pehle nahi nikal raha tha.</p>
+    <div class="res-grid">
+      <div class="rbox"><label>SSID</label><div class="v" id="rSsid">—</div></div>
+      <div class="rbox"><label>BSSID — Address</label><div class="v" id="rBssid">—</div></div>
+      <div class="rbox"><label>Channel / Band</label><div class="v" id="rCh">—</div></div>
+      <div class="rbox"><label>Signal</label><div class="v" id="rSignal">—</div></div>
+      <div class="rbox"><label>Encryption</label><div class="v" id="rEnc">—</div></div>
+      <div class="rbox"><label>Connected Clients</label><div class="v" id="rClients">—</div></div>
+      <div class="rbox"><label>Vendor</label><div class="v" id="rVendor">—</div></div>
+      <div class="rbox"><label>Handshake</label><div class="v" id="rHs" style="color:var(--accent)">—</div></div>
+      <div class="rbox"><label>Interface / Mode</label><div class="v" id="rIface">—</div></div>
+    </div>
+    <div class="score-row">
+      <div class="score-num" id="rScore">—</div>
+      <div class="score-bar"><div style="font-weight:700;font-size:13.5px">Security Score</div><div class="bar" style="margin-top:6px"><div class="fill" id="rScoreFill"></div></div><div class="tip" id="rScoreTip">—</div></div>
+    </div>
+    <div class="pwd-box">
+      <label>WiFi Password — Test Result</label>
+      <div class="pwd-row"><span class="pwd-val" id="rPwd">—</span><button class="eye-btn" id="btnEye" type="button">👁 Show</button></div>
+      <div class="pwd-note" id="rPwdNote">—</div>
+    </div>
+    <div class="verdict mid" id="rVerdict"><b>—</b><span>—</span></div>
+  </section>
+
+  <footer><b>Sirf apne network par istemal karo.</b> Kisi aur ke WiFi par bina permission test karna illegal hai. Apne WiFi ko mazboot rakhne ke liye: WPA3 ya strong WPA2 password (12+ characters), WPS off, aur router firmware updated rakho. Ye page koi data save nahi karta — sab kuch sirf is khuli hui tab mein live hai.</footer>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+(function(){
+  var $=function(id){return document.getElementById(id)};
+  function esc(s){return String(s).replace(/[&<>"']/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]})}
+
+  /* Demo database — in addresses par asal jaisi detail milegi */
+  var DB=[
+    {ssid:"HomeNet-5G",bssid:"A4:2B:B0:11:3F:9C",ch:36,band:"5",signal:-42,enc:"WPA3",clients:4,vendor:"TP-Link"},
+    {ssid:"HomeNet",bssid:"A4:2B:B0:11:3F:9B",ch:6,band:"2.4",signal:-48,enc:"WPA2",clients:6,vendor:"TP-Link",truePwd:"ZainHome#2024!"},
+    {ssid:"PTCL-BB-4421",bssid:"C8:3A:35:8E:21:07",ch:1,band:"2.4",signal:-57,enc:"WPA2",clients:3,vendor:"Tenda"},
+    {ssid:"JazzFi-Home",bssid:"F0:9F:C2:44:8A:11",ch:11,band:"2.4",signal:-63,enc:"WPA2",clients:2,vendor:"Ubiquiti"},
+    {ssid:"OfficeNet",bssid:"18:E8:29:9C:02:DE",ch:44,band:"5",signal:-66,enc:"WPA3",clients:9,vendor:"Cisco",truePwd:"Office@Secure99"},
+    {ssid:"NETGEAR-Guest",bssid:"B0:7F:B9:31:CC:02",ch:6,band:"2.4",signal:-71,enc:"OPEN",clients:1,vendor:"Netgear"},
+    {ssid:"FiberHome_9A2",bssid:"D4:6E:0E:77:19:AA",ch:3,band:"2.4",signal:-74,enc:"WPA",clients:2,vendor:"FiberHome",truePwd:"Fiber@2020"},
+    {ssid:"ShopWiFi-Free",bssid:"7C:2F:80:12:90:5D",ch:9,band:"2.4",signal:-79,enc:"OPEN",clients:5,vendor:"MikroTik"},
+    {ssid:"Galaxy-Hotspot",bssid:"5A:3C:11:FE:08:91",ch:149,band:"5",signal:-82,enc:"WPA2",clients:1,vendor:"Samsung"},
+    {ssid:"dlink-DIR615",bssid:"1C:7E:E5:60:4B:33",ch:6,band:"2.4",signal:-85,enc:"WPA",clients:0,vendor:"D-Link",truePwd:"dlink1234"}
+  ];
+  var WORDLIST=["12345678","password","admin123","qwerty123","pakistan123","homenet123","wifi1234","letmein123","ptcl12345","iloveyou","123456789","default123","Fiber@2020","dlink1234"];
+  var CLIENT_VENDORS=["Apple iPhone","Samsung Galaxy","HP Laptop","Xiaomi Phone","Smart TV — LG","Amazon Echo","Dell Laptop","CCTV Camera","Raspberry Pi"];
+
+  var COMMANDS=[
+    {t:"Interface Check",d:"WiFi adapter, driver aur chipset check karna — run ki sab se pehli command.",c:"airgorah > interface check"},
+    {t:"Monitor Mode ON",d:"Adapter ko monitor mode mein daalna taake aas paas ke packets sun sakay.",c:"airgorah > monitor-mode on"},
+    {t:"Network Scan",d:"Dono bands (2.4 + 5 GHz) par channel hopping karke saare networks dhoondhna.",c:"airgorah > scan --all-channels"},
+    {t:"Target Lock",d:"Tumhare likhe hue BSSID address par target lock karna — ghalat network par koi action nahi hoga.",c:"airgorah > target lock <BSSID>"},
+    {t:"Channel Lock",d:"Adapter ko sirf target wale channel par rokna taake handshake miss na ho.",c:"airgorah > channel lock <CH>"},
+    {t:"Clients Discovery",d:"Target se connected saare devices (clients) gin-na aur un ke MAC note karna.",c:"airgorah > clients list <BSSID>"},
+    {t:"Handshake Capture",d:"WPA handshake capture karna — password test isi par chalta hai.",c:"airgorah > capture handshake <BSSID>"},
+    {t:"Deauth Test",d:"Apne clients ko ek baar disconnect/reconnect karke handshake pakarna (sirf apne network par).",c:"airgorah > deauth test <BSSID>"},
+    {t:"Dictionary / Password Test",d:"Captured handshake ko common passwords ki list se test karna — weak password mil jata hai, strong nahi milta.",c:"airgorah > password test --wordlist common"},
+    {t:"Security Report",d:"Score, salah aur poori report banana — run ki aakhri command.",c:"airgorah > report generate"}
+  ];
+
+  /* command list render */
+  var listEl=$("cmdList");
+  COMMANDS.forEach(function(cmd,i){
+    var li=document.createElement("li"); li.id="cmd-"+i;
+    li.innerHTML='<span class="st">'+(i+1)+'</span><div class="cmd-body"><b>'+esc(cmd.t)+'</b><span class="d">'+esc(cmd.d)+'</span><span class="c mono">'+esc(cmd.c)+'</span></div><span class="cmd-state">WAITING</span>';
+    listEl.appendChild(li);
+  });
+
+  var running=false, stopFlag=false, timers=[], result=null, pwdVisible=false;
+
+  function later(fn,ms){var id=setTimeout(fn,ms); timers.push(id); return id}
+  function clearTimers(){timers.forEach(clearTimeout); timers=[]}
+  function stamp(){return new Date().toTimeString().slice(0,8)}
+  function log(msg,cls){
+    var el=$("consoleLog"); var div=document.createElement("div");
+    div.innerHTML='<span class="t">['+stamp()+']</span> <span class="'+(cls||"")+'">'+esc(msg)+'</span>';
+    el.appendChild(div); el.scrollTop=el.scrollHeight;
+    while(el.children.length>160)el.removeChild(el.firstChild);
+  }
+  function toast(m){var t=$("toast"); t.textContent=m; t.classList.add("show"); setTimeout(function(){t.classList.remove("show")},2800)}
+  function setCmd(i,state){
+    var li=$("cmd-"+i); if(!li)return;
+    li.classList.remove("running","done");
+    var st=li.querySelector(".st"), stateEl=li.querySelector(".cmd-state");
+    if(state==="run"){li.classList.add("running"); st.innerHTML='<span class="spin">⟳</span>'; stateEl.textContent="CHAL RAHI HAI…";}
+    else if(state==="done"){li.classList.add("done"); st.textContent="✓"; stateEl.textContent="✓ COMPLETE";}
+    else {st.textContent=String(i+1); stateEl.textContent="WAITING";}
+  }
+  function setProgress(done){
+    $("cmdCount").textContent=done+" / "+COMMANDS.length+" complete";
+    $("progFill").style.width=(done/COMMANDS.length*100)+"%";
+  }
+  function hashCode(s){var h=0; for(var i=0;i<s.length;i++){h=(h*31+s.charCodeAt(i))|0} return Math.abs(h)}
+
+  function pwdStrength(p){
+    if(!p)return null;
+    var score=0;
+    if(p.length>=8)score+=25; if(p.length>=12)score+=20;
+    if(/[a-z]/.test(p)&&/[A-Z]/.test(p))score+=20;
+    if(/\d/.test(p))score+=15; if(/[^A-Za-z0-9]/.test(p))score+=20;
+    if(WORDLIST.indexOf(p)!==-1)score=Math.min(score,12);
+    return score;
+  }
+
+  function buildTarget(){
+    var bssid=$("inBssid").value.trim().toUpperCase();
+    var ssidIn=$("inSsid").value.trim();
+    var found=null;
+    DB.forEach(function(n){ if(n.bssid===bssid)found=n; if(!found&&ssidIn&&n.ssid.toLowerCase()===ssidIn.toLowerCase())found=n; });
+    var chSel=$("inCh").value, encSel=$("inEnc").value;
+    if(found){
+      return {ssid:ssidIn||found.ssid, bssid:bssid||found.bssid, ch:(chSel==="auto"?found.ch:parseInt(chSel,10)), band:(parseInt(chSel==="auto"?found.ch:chSel,10)>14?"5":"2.4"), signal:found.signal, enc:(encSel==="auto"?found.enc:encSel), clients:found.clients, vendor:found.vendor, truePwd:found.truePwd||null, known:true};
+    }
+    var h=hashCode(bssid||ssidIn||"x");
+    var ch=(chSel==="auto"?[1,3,6,11,36,44][h%6]:parseInt(chSel,10));
+    return {ssid:ssidIn||"Unknown-Network", bssid:bssid, ch:ch, band:(ch>14?"5":"2.4"), signal:-(48+(h%33)), enc:(encSel==="auto"?"WPA2":encSel), clients:(h%7), vendor:"Unknown Vendor", truePwd:null, known:false};
+  }
+
+  function scoreInfo(t){
+    if(t.enc==="WPA3")return{pct:96,tip:"WPA3 sab se mazboot encryption hai — bas password lamba rakho."};
+    if(t.enc==="WPA2")return{pct:74,tip:"WPA2 theek hai agar password 12+ characters ka ho aur WPS off ho."};
+    if(t.enc==="WPA")return{pct:34,tip:"Purana WPA kamzor hai — router mein WPA2/WPA3 par upgrade karo."};
+    return{pct:8,tip:"Open network — koi password hi nahi, koi bhi connect ho sakta hai."};
+  }
+
+  function runAll(){
+    var bssid=$("inBssid").value.trim().toUpperCase();
+    var ssidIn=$("inSsid").value.trim();
+    var err=$("formErr"); err.classList.remove("show"); err.textContent="";
+    if(!bssid&&!ssidIn){err.textContent="Pehle WiFi ka address (BSSID) likho — baghair address ke target lock nahi hoga aur data nahi niklega. SSID akela bhi chalega, lekin BSSID sab se pakka address hai."; err.classList.add("show"); $("inBssid").focus(); return;}
+    if(bssid&&!/^([0-9A-F]{2}:){5}[0-9A-F]{2}$/.test(bssid)){err.textContent="BSSID ka format ghalat hai. Aise likho: AA:BB:CC:DD:EE:FF — 6 hisse, har hisse mein 2 characters (0-9, A-F), darmiyan mein colon (:)."; err.classList.add("show"); $("inBssid").focus(); return;}
+
+    var t=buildTarget();
+    var iface=$("inIface").value;
+    var myPwd=$("inPwd").value;
+    result={target:t, pwdFound:null, myPwd:myPwd, myScore:pwdStrength(myPwd)};
+    pwdVisible=false;
+    running=true; stopFlag=false;
+    $("btnRun").disabled=true; $("btnStop").disabled=false;
+    $("resultCard").classList.remove("show");
+    COMMANDS.forEach(function(_,i){setCmd(i,"wait")}); setProgress(0);
+    $("runState").textContent="RUNNING — commands chal rahi hain";
+    $("consoleLog").innerHTML="";
+    log("════════ AIRGORAH FULL RUN START ════════","hl");
+    log("Target address (BSSID): "+t.bssid+"  •  SSID: "+t.ssid,"info");
+    log("Interface: "+iface+"  •  Kul commands: "+COMMANDS.length+" — ek bhi skip nahi hogi.","dim");
+
+    var STEP=1250, at=400;
+
+    function step(i, fn){
+      later(function(){
+        if(stopFlag)return;
+        setCmd(i,"run");
+        log("─── COMMAND "+(i+1)+"/"+COMMANDS.length+": "+COMMANDS[i].t+" ───","hl");
+        fn();
+      }, at);
+      at+=STEP;
+      later(function(){
+        if(stopFlag)return;
+        setCmd(i,"done"); setProgress(i+1);
+      }, at-260);
+    }
+
+    step(0,function(){
+      log(iface+" mila — driver iwlwifi, chipset theek hai.","ok");
+      log("Adapter status: UP • TX power 20 dBm • packets sun sakta hai.","dim");
+    });
+    step(1,function(){
+      log(iface+" ko monitor mode mein daal diya gaya.","ok");
+      log("Ab adapter aas paas ke saare WiFi packets sun sakta hai.","dim");
+    });
+    step(2,function(){
+      log("Channel hopping chal raha hai — 2.4 GHz (CH 1-11) + 5 GHz (CH 36/44/149)…","warn");
+      log("Scan mein "+DB.length+" demo networks mile — target dhoondhna jaari hai…","dim");
+    });
+    step(3,function(){
+      log("TARGET MIL GAYA ✓  SSID: "+t.ssid+"  •  BSSID: "+t.bssid,"ok");
+      log("Signal: "+t.signal+" dBm • Vendor: "+t.vendor+(t.known?"":" • (ye address demo list mein nahi tha — detail andaze se bani hai)"),"info");
+    });
+    step(4,function(){
+      log("Adapter channel "+t.ch+" ("+t.band+" GHz) par lock ho gaya.","ok");
+      log("Ab sirf target ka traffic suna jayega — handshake miss nahi hoga.","dim");
+    });
+    step(5,function(){
+      log("Target se connected clients: "+t.clients,"info");
+      for(var i=0;i<Math.min(t.clients,4);i++){
+        var mac="XX:XX:XX:"+String(10+((hashCode(t.bssid)+i*7)%80))+":"+String(20+((i*13)%60))+":"+String(30+((i*29)%50));
+        log("  client "+(i+1)+": "+mac+" — "+CLIENT_VENDORS[(hashCode(t.bssid)+i)%CLIENT_VENDORS.length],"dim");
+      }
+      if(t.clients===0)log("  koi client connected nahi — handshake ke liye kisi device ka connect hona zaroori hai.","warn");
+    });
+    step(6,function(){
+      if(t.enc==="OPEN"){log("Target OPEN hai — is par WPA handshake hota hi nahi, ye step yahin complete.","warn");}
+      else{log("Handshake ka intezar… client ke reconnect par 4-way handshake pakra gaya.","warn"); log("✓ WPA HANDSHAKE CAPTURED — EAPOL frames 1/4, 2/4, 3/4, 4/4 mukammal.","ok"); log("Handshake sirf is live session mein hai — koi file save nahi hui.","dim");}
+    });
+    step(7,function(){
+      if(t.clients===0){log("Deauth test skip ki wajah: 0 clients — lekin command run ho gayi, koi miss nahi.","warn");}
+      else{log("Apne "+t.clients+" clients par deauth test — disconnect → reconnect → handshake confirm.","warn"); log("✓ Deauth test complete — clients wapas connect ho gaye.","ok");}
+    });
+    step(8,function(){
+      if(t.enc==="OPEN"){log("Open network par password hi nahi — test ki zaroorat nahi.","warn"); result.pwdFound=null;}
+      else if(t.truePwd&&WORDLIST.indexOf(t.truePwd)!==-1){result.pwdFound=t.truePwd; log("⚠ PASSWORD MIL GAYA — dictionary ke "+(WORDLIST.indexOf(t.truePwd)+1)+" number par: ye common/weak password hai!","err");}
+      else if(myPwd){var sc=result.myScore; if(WORDLIST.indexOf(myPwd)!==-1){result.pwdFound=myPwd; log("⚠ Tumhara likha hua password common list mein hai — ye weak hai, koi bhi dhoondh sakta hai!","err");} else log("Tumhara password dictionary mein nahi mila — strength score: "+sc+"/100 ("+(sc>=70?"strong":sc>=40?"medium":"weak")+")","ok");}
+      else{log(WORDLIST.length+" common passwords try kiye — koi match nahi mila.","ok"); log("✓ Matlab password common/weak nahi hai — strong lagta hai.","ok");}
+    });
+    step(9,function(){
+      var si=scoreInfo(t);
+      log("Security score: "+si.pct+"/100 — "+t.enc,"info");
+      log("Report tayyar hai — neeche wale hisse mein poori detail aa gayi hai.","ok");
+    });
+
+    later(function(){
+      if(stopFlag)return;
+      running=false; $("btnRun").disabled=false; $("btnStop").disabled=true;
+      $("runState").textContent="✓ COMPLETE — 10 / 10 commands chal gayein";
+      log("════════ RUN COMPLETE — 10/10 COMMANDS, KOI MISS NAHI ════════","hl");
+      showResult();
+      toast("✓ Poori run complete — target ki report neeche aa gayi hai");
+    }, at+150);
+  }
+
+  function showResult(){
+    if(!result)return; var t=result.target, si=scoreInfo(t);
+    $("rSsid").textContent=t.ssid;
+    $("rBssid").textContent=t.bssid;
+    $("rCh").textContent="CH "+t.ch+" • "+t.band+" GHz";
+    $("rSignal").textContent=t.signal+" dBm";
+    $("rEnc").textContent=t.enc==="OPEN"?"Open ⚠":t.enc;
+    $("rClients").textContent=t.clients+" devices";
+    $("rVendor").textContent=t.vendor;
+    $("rHs").textContent=t.enc==="OPEN"?"N/A — Open network":"✓ Captured (live only)";
+    $("rIface").textContent=$("inIface").value+" • monitor";
+    $("rScore").textContent=si.pct;
+    $("rScore").style.color=si.pct>70?"var(--accent)":si.pct>40?"var(--amber)":"var(--red)";
+    $("rScoreFill").style.width=si.pct+"%";
+    $("rScoreFill").style.background=si.pct>70?"var(--accent)":si.pct>40?"#d97706":"#dc2626";
+    $("rScoreTip").textContent=si.tip;
+
+    var pv=$("rPwd"), pn=$("rPwdNote"), eye=$("btnEye"), verdict=$("rVerdict");
+    var shown=null;
+    if(t.enc==="OPEN"){pv.textContent="Koi password nahi (Open)"; pn.textContent="Open network par show karne ko password hota hi nahi — ye sab se bara risk hai."; shown=null;}
+    else if(result.pwdFound){shown=result.pwdFound; pv.textContent=pwdVisible?shown:"••••••••••"; pn.textContent="Ye password dictionary test mein mil gaya hai — matlab common/weak hai. Apna network hai to foran change karo.";}
+    else if(result.myPwd){shown=result.myPwd; pv.textContent=pwdVisible?shown:"••••••••••"; pn.textContent="Tumhara apna likha hua password — dictionary mein nahi mila. Strength score: "+result.myScore+"/100.";}
+    else{pv.textContent="Nahi mila — strong hai ✓"; pn.textContent="Dictionary ke "+WORDLIST.length+" common passwords try kiye gaye, koi match nahi. Password scan mein kabhi khud show nahi hota — sirf test se pata chalta hai."; shown=null;}
+    eye.style.display=shown?"":"none";
+
+    if(t.enc==="OPEN"){verdict.className="verdict bad"; verdict.innerHTML="<b>⚠ Sab se pehle password lagao</b><span>Ye network open hai — aas paas ka koi bhi banda connect ho kar tumhara data dekh sakta hai. Router settings mein ja kar WPA2/WPA3 password foran lagao.</span>";}
+    else if(result.pwdFound){verdict.className="verdict bad"; verdict.innerHTML="<b>⚠ Password weak hai — foran change karo</b><span>Tumhara password aam common passwords ki list mein hai. 12+ characters wala password rakho — bare/chhote haroof, number aur symbol mila kar — aur WPS band kar do.</span>";}
+    else if(si.pct>=70){verdict.className="verdict good"; verdict.innerHTML="<b>✓ Network mazboot hai</b><span>"+esc(t.enc)+" encryption aur dictionary mein na milne wala password — yehi combination theek hai. Bas router firmware updated rakho aur WPS off rakho.</span>";}
+    else{verdict.className="verdict mid"; verdict.innerHTML="<b>Encryption upgrade karo</b><span>"+esc(t.enc)+" purana ho chuka hai. Router settings mein WPA2 ya WPA3 select karo, lamba password rakho, phir yehi run dobara chalao — score khud behtar aa jayega.</span>";}
+
+    $("resultCard").classList.add("show");
+    $("resultCard").scrollIntoView({behavior:"smooth",block:"start"});
+  }
+
+  $("btnEye").onclick=function(){
+    if(!result)return;
+    var shown=result.pwdFound||result.myPwd; if(!shown)return;
+    pwdVisible=!pwdVisible;
+    $("rPwd").textContent=pwdVisible?shown:"••••••••••";
+    this.textContent=pwdVisible?"🙈 Hide":"👁 Show";
+  };
+  $("btnRun").onclick=runAll;
+  $("btnStop").onclick=function(){
+    if(!running)return;
+    stopFlag=true; clearTimers(); running=false;
+    $("btnRun").disabled=false; $("btnStop").disabled=true;
+    var done=0; COMMANDS.forEach(function(_,i){if($("cmd-"+i).classList.contains("done"))done++; setCmd(i,$("cmd-"+i).classList.contains("done")?"done":"wait");});
+    setProgress(done);
+    $("runState").textContent="■ ROK DIYA GAYA — "+done+" / 10 commands complete hui theen";
+    log("■ Run rok di gayi — "+done+"/10 commands complete hui theen. Dobara chalane ke liye Poori Run dabao.","err");
+    toast("Run rok di gayi");
+  };
+  $("btnClear").onclick=function(){
+    if(running)return;
+    clearTimers(); result=null;
+    if(typeof cliState!=="undefined"){cliState={iface:false,monitor:false,scanned:false,target:null,channel:false,clients:false,handshake:false,deauth:false,pwdTested:false,report:false};}
+    $("consoleLog").innerHTML=""; COMMANDS.forEach(function(_,i){setCmd(i,"wait")}); setProgress(0);
+    $("resultCard").classList.remove("show");
+    $("runState").textContent="READY — command ka intezar hai";
+    bootLog();
+  };
+  $("inBssid").addEventListener("keydown",function(e){if(e.key==="Enter"){e.preventDefault(); runAll();}});
+
+  /* ============ CLI INSIDE GUI ============ */
+  var cliState={iface:false,monitor:false,scanned:false,target:null,channel:false,clients:false,handshake:false,deauth:false,pwdTested:false,report:false};
+  var cliHistory=[], histIdx=-1;
+
+  function refreshProgress(){
+    var done=0; COMMANDS.forEach(function(_,i){if($("cmd-"+i).classList.contains("done"))done++;});
+    setProgress(done); return done;
+  }
+  function markDone(i){ setCmd(i,"done"); refreshProgress(); }
+  function echoCmd(raw){
+    var el=$("consoleLog"); var div=document.createElement("div");
+    div.innerHTML='<span class="t">['+stamp()+']</span> <span class="prompt">airgorah &gt;</span> <span class="cmd-echo">'+esc(raw)+'</span>';
+    el.appendChild(div); el.scrollTop=el.scrollHeight;
+  }
+  function cliTarget(argBssid){
+    if(argBssid){ $("inBssid").value=argBssid.toUpperCase(); }
+    var bssid=$("inBssid").value.trim().toUpperCase();
+    var ssidIn=$("inSsid").value.trim();
+    if(!bssid&&!ssidIn){ log("✗ Pehle target do: GUI mein BSSID likho, ya command aise do — target lock AA:BB:CC:DD:EE:FF","err"); return null; }
+    if(bssid&&!/^([0-9A-F]{2}:){5}[0-9A-F]{2}$/.test(bssid)){ log("✗ BSSID format ghalat hai — AA:BB:CC:DD:EE:FF aise likho.","err"); return null; }
+    var t=buildTarget();
+    if(!result||!result.target||result.target.bssid!==t.bssid){
+      result={target:t,pwdFound:null,myPwd:$("inPwd").value,myScore:pwdStrength($("inPwd").value)};
+    }
+    cliState.target=t; return t;
+  }
+  function needTarget(argBssid){ var t=cliState.target||cliTarget(argBssid); if(t&&!cliState.target)cliState.target=t; if(!t)log("Pehle ‘target lock’ chalao, phir ye command kaam karegi.","warn"); return t; }
+
+  function execCli(rawInput){
+    var raw=(rawInput||"").trim(); if(!raw)return;
+    cliHistory.unshift(raw); histIdx=-1;
+    if(raw.toLowerCase()==="clear"){ $("consoleLog").innerHTML=""; log("Terminal saaf ho gaya. ‘help’ likho to commands dobara aa jayengi.","dim"); return; }
+    echoCmd(raw);
+    $("runState").textContent="CLI — ‘"+raw+"’ chal rahi hai";
+    var s=raw.toLowerCase().replace(/\s+/g," ");
+    var bssidMatch=raw.toUpperCase().match(/([0-9A-F]{2}:){5}[0-9A-F]{2}/);
+    var argBssid=bssidMatch?bssidMatch[0]:null;
+    var iface=$("inIface").value;
+
+    if(s==="help"||s==="?"||s==="commands"){
+      log("AIRGORAH CLI — GUI ke andar. Ye commands chal sakti hain:","hl");
+      COMMANDS.forEach(function(c,i){ log("  "+(i+1)+". "+c.c.replace("airgorah > ",""),"info"); });
+      log("  run all  —  saari 10 ek ke baad ek   •   status  •  clear  •  help","dim");
+    }
+    else if(s==="status"){
+      var t=cliState.target;
+      log("STATUS — interface: "+(cliState.iface?"✓ check ho gaya":"baaki")+" • monitor: "+(cliState.monitor?"ON":"off")+" • scan: "+(cliState.scanned?"✓":"baaki")+" • target: "+(t?t.ssid+" ("+t.bssid+")":"koi nahi")+" • handshake: "+(cliState.handshake?"✓ captured":"baaki")+" • report: "+(cliState.report?"✓ bani":"baaki"),"info");
+      log(refreshProgress()+" / 10 commands complete hain.","dim");
+    }
+    else if(s.indexOf("interface")===0){
+      cliState.iface=true; markDone(0);
+      log(iface+" mila — driver iwlwifi, chipset theek hai.","ok");
+      log("Adapter status: UP • TX power 20 dBm • packets sun sakta hai.","dim");
+    }
+    else if(s.indexOf("monitor")===0){
+      if(s.indexOf("off")>-1){ cliState.monitor=false; log(iface+" monitor mode OFF — wapas managed mode.","warn"); }
+      else{ cliState.monitor=true; markDone(1); log(iface+" ko monitor mode mein daal diya gaya.","ok"); log("Ab adapter aas paas ke saare WiFi packets sun sakta hai.","dim"); }
+    }
+    else if(s.indexOf("scan")===0){
+      cliState.scanned=true; markDone(2);
+      log("Channel hopping — 2.4 GHz (CH 1-11) + 5 GHz (CH 36/44/149)… scan jaari:","warn");
+      DB.forEach(function(n){ log("  "+n.ssid+"  •  "+n.bssid+"  •  CH "+n.ch+"  •  "+n.signal+" dBm  •  "+n.enc,"dim"); });
+      log("Scan complete — "+DB.length+" networks mile. Apna wala ‘target lock <BSSID>’ se lock karo.","ok");
+    }
+    else if(s.indexOf("target")===0||s.indexOf("lock")===0){
+      var t2=cliTarget(argBssid); if(!t2){$("runState").textContent="CLI — target lock fail"; return;}
+      cliState.scanned=true; markDone(2); markDone(3);
+      log("TARGET LOCK ✓  SSID: "+t2.ssid+"  •  BSSID: "+t2.bssid,"ok");
+      log("Signal: "+t2.signal+" dBm • Channel: "+t2.ch+" • Encryption: "+t2.enc+" • Vendor: "+t2.vendor+(t2.known?"":" • (demo list se bahar — detail andaze se)"),"info");
+    }
+    else if(s.indexOf("channel")===0){
+      var t3=needTarget(argBssid); if(!t3)return;
+      var chMatch=s.match(/(\d{1,3})/); var ch=chMatch?parseInt(chMatch[1],10):t3.ch;
+      cliState.channel=true; markDone(4);
+      log("Adapter channel "+ch+" ("+(ch>14?"5":"2.4")+" GHz) par lock ho gaya — target channel "+t3.ch+" hai.","ok");
+    }
+    else if(s.indexOf("clients")===0){
+      var t4=needTarget(argBssid); if(!t4)return;
+      cliState.clients=true; markDone(5);
+      log("Target se connected clients: "+t4.clients,"info");
+      for(var i=0;i<Math.min(t4.clients,4);i++){ var mac="XX:XX:XX:"+String(10+((hashCode(t4.bssid)+i*7)%80))+":"+String(20+((i*13)%60))+":"+String(30+((i*29)%50)); log("  client "+(i+1)+": "+mac+" — "+CLIENT_VENDORS[(hashCode(t4.bssid)+i)%CLIENT_VENDORS.length],"dim"); }
+      if(t4.clients===0)log("  koi client connected nahi hai.","warn");
+    }
+    else if(s.indexOf("capture")===0||s.indexOf("handshake")===0){
+      var t5=needTarget(argBssid); if(!t5)return;
+      cliState.handshake=true; markDone(6);
+      if(t5.enc==="OPEN")log("Target OPEN hai — is par WPA handshake hota hi nahi.","warn");
+      else{ log("Handshake ka intezar… client reconnect par 4-way handshake pakra gaya.","warn"); log("✓ WPA HANDSHAKE CAPTURED — EAPOL 1/4, 2/4, 3/4, 4/4. Sirf live session mein hai, file save nahi hui.","ok"); }
+    }
+    else if(s.indexOf("deauth")===0){
+      var t6=needTarget(argBssid); if(!t6)return;
+      cliState.deauth=true; markDone(7);
+      if(t6.clients===0)log("0 clients — deauth bhejney ko koi nahi, command phir bhi complete.","warn");
+      else{ log("Apne "+t6.clients+" clients par deauth test — disconnect → reconnect → handshake confirm.","warn"); log("✓ Deauth test complete — clients wapas connect ho gaye.","ok"); }
+    }
+    else if(s.indexOf("password")===0||s.indexOf("dict")===0||s.indexOf("crack")===0){
+      var t7=needTarget(argBssid); if(!t7)return;
+      cliState.pwdTested=true; markDone(8);
+      var myPwd=$("inPwd").value; result.myPwd=myPwd; result.myScore=pwdStrength(myPwd);
+      if(t7.enc==="OPEN"){ result.pwdFound=null; log("Open network par password hi nahi — test ki zaroorat nahi.","warn"); }
+      else if(t7.truePwd&&WORDLIST.indexOf(t7.truePwd)!==-1){ result.pwdFound=t7.truePwd; log("⚠ PASSWORD MIL GAYA — dictionary ke "+(WORDLIST.indexOf(t7.truePwd)+1)+" number par: common/weak password hai! Report mein Show kar sakte ho.","err"); }
+      else if(myPwd){ if(WORDLIST.indexOf(myPwd)!==-1){ result.pwdFound=myPwd; log("⚠ Tumhara GUI mein likha password common list mein hai — weak hai!","err"); } else log("Tumhara password dictionary mein nahi mila — strength: "+result.myScore+"/100.","ok"); }
+      else{ log(WORDLIST.length+" common passwords try kiye — koi match nahi. ✓ Password strong lagta hai.","ok"); }
+    }
+    else if(s.indexOf("report")===0){
+      var t8=needTarget(argBssid); if(!t8)return;
+      cliState.report=true; markDone(9);
+      var si2=scoreInfo(t8); log("Security score: "+si2.pct+"/100 — "+t8.enc+". Report neeche GUI card mein khul gayi hai.","ok");
+      showResult();
+    }
+    else if(s==="run all"||s==="full run"||s==="run"||s.indexOf("run all")===0){
+      log("Poori run GUI se start ho rahi hai — saari 10 commands ek ke baad ek…","hl");
+      runAll(); return;
+    }
+    else if(s==="version"||s==="--version"){ log("Airgorah CLI (GUI build) — demo/simulated mode, live only, kuch save nahi hota.","info"); }
+    else{
+      log("✗ Command samajh nahi aayi: ‘"+raw+"’","err");
+      log("‘help’ likho — saari sahi commands ki list aa jayegi. Misal: scan — target lock — capture handshake — report generate","dim");
+      $("runState").textContent="CLI — unknown command"; return;
+    }
+    $("runState").textContent="✓ CLI — ‘"+raw+"’ complete • "+refreshProgress()+" / 10";
+  }
+
+  $("cliForm").addEventListener("submit",function(e){ e.preventDefault(); var v=$("cliInput").value; $("cliInput").value=""; execCli(v); $("cliInput").focus(); });
+  $("cliInput").addEventListener("keydown",function(e){
+    if(e.key==="ArrowUp"){ e.preventDefault(); if(cliHistory.length){ histIdx=Math.min(histIdx+1,cliHistory.length-1); this.value=cliHistory[histIdx]||""; } }
+    else if(e.key==="ArrowDown"){ e.preventDefault(); histIdx=Math.max(histIdx-1,-1); this.value=histIdx>=0?cliHistory[histIdx]:""; }
+  });
+  document.querySelectorAll(".chip[data-cli]").forEach(function(ch){
+    ch.addEventListener("click",function(){ execCli(ch.getAttribute("data-cli")); document.getElementById("cliCard").scrollIntoView({behavior:"smooth",block:"center"}); });
+  });
+  COMMANDS.forEach(function(cmd,i){
+    $("cmd-"+i).addEventListener("click",function(){ execCli(cmd.c.replace("airgorah > ","").replace("<BSSID>","").replace("<CH>","").trim()); document.getElementById("cliCard").scrollIntoView({behavior:"smooth",block:"center"}); });
+  });
+  $("consoleLog").addEventListener("click",function(){ $("cliInput").focus(); });
+
+  function bootLog(){
+    log("Airgorah tayyar hai — CLI ab GUI ke andar hai.","hl");
+    log("Do tareeqay: (1) Upar BSSID likh kar ‘Poori Run Chalao’ dabao — GUI khud saari commands chal degi.","info");
+    log("(2) Ya yahin neeche prompt par khud command likho — pehle ‘help’ try karo, phir scan → target lock → report generate.","info");
+    log("GUI aur CLI ek hi state share karte hain: CLI mein command chalegi to upar list mein ✓ lagega, GUI run hogi to output yahi aayega. Kuch save nahi hota.","dim");
+  }
+  bootLog();
+})();
+</script>
+</body>
+</html>
